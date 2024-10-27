@@ -270,8 +270,8 @@ void setSlaveOutput(int x) {
 }
 
 float potEntry(int x) {
-  char* lcdEntry[9] = {"Current:", "Voltage:", "OV:", "A.M.:", "Min.:", "Start V", "End V", "Step In mS", "Cutoff Current"}; //start V and end V in Volts, step time in milliseconds, total 1000 steps, cutoff current in amps
-  int rMode[9] = {0,1,1,1,1,1,1,1,0};
+  char* lcdEntry[10] = {"Current:", "Voltage:", "OV:", "A.M.:", "Min.:", "Start V", "End V", "Step In mS", "Cutoff Current", "Surface Area"}; //start V and end V in Volts, step time in milliseconds, total 1000 steps, cutoff current in amps
+  int rMode[10] = {0,1,1,1,1,1,1,1,0,0};
   int input1, input2;
   float amset = 0;
   int finestatus = 0;
@@ -363,6 +363,73 @@ void rampV() {          //start V and end V in Volts, step time in milliseconds,
 }
 
 
+//
+// This is a custom program
+// Reads a value from the potentiometer for surface area size
+// then calculates the current necessary for each stage.
+//
+#define STAGES 3
+#define TIME_IN_STAGES_MS 5000
+
+void customProgram() {
+  float surfaceArea;
+  surfaceArea = potEntry(9);
+
+  long stage[STAGES];
+  stage[0] = surfaceArea * 1;
+  stage[1] = surfaceArea * 2;
+  stage[3] = surfaceArea * 3;
+
+  for (int i = 0; i < STAGES; i++)
+  {
+    Serial.println("Stage " + String(i) +" calculated voltage: " + String(stage[i]));
+  }
+
+  // for each stage
+  for (int i = 0; i < STAGES; i++) {
+    long start_time = millis();
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Entered Stage " + String(i + 1));
+    lcd.setCursor(0, 1);
+    lcd.print("Current: " + String(stage[i]) + " A");
+    Serial.println("Entered Stage " + String(i + 1));
+    // Stay in stage for X amount of time
+    do {
+      Serial.println("- in stage " + String(i + 1));
+      masterDelay(10);
+    } while (millis() - start_time < TIME_IN_STAGES_MS);
+  }
+  lcd.clear();
+  lcd.setCursor(2, 1);
+  lcd.print("Program Complete");
+  masterDelay(5000);
+
+  // analogWrite16(outputPin[1], stage[0]);
+  // delay(1000);
+  // LCDread();
+  // digitalWrite(outputPin[3], HIGH);
+  // OutputStatus = 1;
+
+  // controlTime = millis();
+  // for (int y = 0; y < 1000; y++) {
+  //   n1[3] = (int) ((n1[1] - n1[0]) / 1000.00 * y);
+  //   analogWrite16(outputPin[1], n1[0] + n1[3]);
+
+  //   readOutput(1, 10);
+  //   panelInput();
+  //   lcd.setCursor (0, 2);
+  //   lcd.print(ReadValue[1], 3);
+  //   //delayMicroseconds(1660);
+  //   delay(n1[2]);
+  //   delayMicroseconds(n1[4]);
+  //   if (OutputStatus == 0) {
+  //     y--;
+  //   }
+  // }
+  // Serial.println(millis() - controlTime);
+  // analogWrite16(outputPin[1], n1[1]);
+}
 
 void setAM(int mtype, float ampmnts) {
   float factor = 1.000;
@@ -1532,25 +1599,22 @@ void panelInput() {
   }
   else if (x == 15) {         //press M5 will reset the zero of current reading
    resetZero = 1;
-
   }
-
   else if (x == 14) {        //press M4 will save calibration data
     saveCalibrationStatus = 1;
   }
-
   else if (x == 12) {               //turning active control on and off
       activeStatus = 1- activeStatus;
       Serial.print(F("Active Control: "));
       Serial.println(activeStatus);
   }
-
-
   else if (x == 13) {               //press M3 will change polarity with the help of reverse polarity box
       rpDirection = 1- rpDirection;
       reverseStatus = 1;
   }
-
+  else if (x == 10) {
+    customProgram();
+  }
 
 
   if (x != 0 && x != 11) {
@@ -1568,6 +1632,8 @@ int checkPushButton() {
     delay(3);
     nn = 1 - nn;
     valPushButton[nn] = analogRead(pushButton);
+    // Serial.println("valPushButton[" + String(nn) + "]: " + String(valPushButton[nn]));
+    // Serial.println(String(abs(valPushButton[0] - valPushButton[1])) + "> 40");
   } while (abs(valPushButton[0] - valPushButton[1]) > 40);
 
   uint8_t pushButtonState = 0;
@@ -1614,11 +1680,17 @@ int checkPushButton() {
     pushButtonState = 12;
   }
   else if (valPushButton[0] > 150) {
-    pushButtonState = 11;
+    pushButtonState = 4;
+    //pushButtonState = 11;
+  }
+  else if (valPushButton[0] > 140) {
+    pushButtonState = 10;
   }
   else {
     pushButtonState = 0;
   }
+  
+  //Serial.println("pushButtonState: " + String(pushButtonState));
 
   //if (pushButtonState > 0) {
 
