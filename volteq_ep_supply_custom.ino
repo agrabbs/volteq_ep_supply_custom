@@ -1656,8 +1656,7 @@ int checkPushButton() {
     pushButtonState = 12;
   }
   else if (valPushButton[0] > 150) {
-    pushButtonState = 4;
-    //pushButtonState = 11;
+    pushButtonState = 11;
   }
   else if (valPushButton[0] > 140) {
     pushButtonState = 10;
