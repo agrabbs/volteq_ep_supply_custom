@@ -390,13 +390,14 @@ void customProgram() {
     long start_time = millis();
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("Entered Stage " + String(i + 1));
+    lcd.print("Stage " + String(i + 1));
     lcd.setCursor(0, 1);
-    lcd.print("Current: " + String(stage[i]) + " A");
-    Serial.println("Entered Stage " + String(i + 1));
+    //lcd.print("Target: " + String(stage[i]) + " A");
+    //Serial.println("Entered Stage " + String(i + 1));
+    setOutput(0, stage[i]);
     // Stay in stage for X amount of time
     do {
-      Serial.println("- in stage " + String(i + 1));
+      //Serial.println("- in stage " + String(i + 1));
       masterDelay(10);
     } while (millis() - start_time < TIME_IN_STAGES_MS);
   }
@@ -404,31 +405,6 @@ void customProgram() {
   lcd.setCursor(2, 1);
   lcd.print("Program Complete");
   masterDelay(5000);
-
-  // analogWrite16(outputPin[1], stage[0]);
-  // delay(1000);
-  // LCDread();
-  // digitalWrite(outputPin[3], HIGH);
-  // OutputStatus = 1;
-
-  // controlTime = millis();
-  // for (int y = 0; y < 1000; y++) {
-  //   n1[3] = (int) ((n1[1] - n1[0]) / 1000.00 * y);
-  //   analogWrite16(outputPin[1], n1[0] + n1[3]);
-
-  //   readOutput(1, 10);
-  //   panelInput();
-  //   lcd.setCursor (0, 2);
-  //   lcd.print(ReadValue[1], 3);
-  //   //delayMicroseconds(1660);
-  //   delay(n1[2]);
-  //   delayMicroseconds(n1[4]);
-  //   if (OutputStatus == 0) {
-  //     y--;
-  //   }
-  // }
-  // Serial.println(millis() - controlTime);
-  // analogWrite16(outputPin[1], n1[1]);
 }
 
 void setAM(int mtype, float ampmnts) {
